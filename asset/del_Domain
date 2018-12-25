@@ -1,0 +1,22 @@
+#!/bin/bash
+lock=`cat core/lock`
+ls /etc/bind/zone > $lock/db/record
+list=`cat $lock/db/record`
+input=$(whiptail --title "[ IP ]" --no-button "Exit" --inputbox "List your Domain : \n\
+$list " 10 60 3>&1 1>&2 2>&3)
+inputquit=$?
+if [[ $inputquit = 0 ]]; then
+	case $input in
+		$input) name=`cat $lock/db/$input`
+				echo "#!/bin/bash" > db/dieshell.sh
+				echo "grep -v 'include \"/etc/bind/zone/$input/$name.conf\";' /etc/bind/named.conf.local > db/tmp" >> db/dieshell.sh
+				chmod 777 db/dieshell.sh
+				db/dieshell.sh #this is very hard T-T
+				cat db/tmp > /etc/bind/named.conf.local
+				rm -r /etc/bind/zone/$input
+				rm -r db/$input
+				whiptail --title "[ DONE ]" --msgbox "$input Deleted" 10 60
+			;;
+	esac
+else exit
+fi

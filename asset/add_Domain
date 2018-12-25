@@ -1,0 +1,120 @@
+#!/bin/bash
+while true
+do
+name=$(whiptail --title "[ NAME ]" --cancel-button "Exit" --inputbox "Name for your Domain :" 10 60 3>&1 1>&2 2>&3)
+quitname=$?
+if [[ $quitname = 0 ]]; then
+	touch $name
+	mv $name core
+	echo "Name       = $name" > core/$name
+else rm core/$name
+	clear
+	exit
+fi
+domain=$(whiptail --title "[ Domain ]" --no-button "Exit" --inputbox "Domain : " 10 60 3>&1 1>&2 2>&3) 
+domainquit=$?
+if [ $domainquit = 0 ]; then	
+    echo "Domain     = $domain" >> core/$name
+else rm core/$name
+	clear
+    exit
+fi
+ipaddress=$(whiptail --title "[ IP ]" --no-button "Exit" --inputbox "Input IP Address :" 10 60 3>&1 1>&2 2>&3)
+ipaddressquit=$?
+if [[ $ipaddressquit = 0 ]]; then
+	echo "IP         = $ipaddress" >> core/$name
+else rm core/$name
+	clear
+    exit
+fi
+inverseip=$(whiptail --title "[ Inverse IP ]" --no-button "Exit" --inputbox "Input 3 Oktet frist IP , but reverse it \n\
+Example : IP 192.168.10.1 \n\
+Become : 10.168.192" 10 60 3>&1 1>&2 2>&3)
+inverseipquit=$?
+if [[ $inverseipquit = 0 ]]; then
+	echo "Inverse IP = $inverseip" >> core/$name
+else rm core/$name
+	clear
+fi
+
+lastip=$(whiptail --title "[ Last IP ]" --no-button "Exit" --inputbox "Input Last Oktet IP Address \n\
+Example : IP 192.168.10.1 \n\
+Input : 1 " 10 60 3>&1 1>&2 2>&3)
+
+keselquit=$?
+if [[ $keselquit = 0 ]]; then
+	echo "Last IP    = $lastip" >> core/$name
+else rm -r core/$name
+fi
+
+confrim=`cat core/$name`
+if (whiptail --title " [ Confirm ]" --yesno "Are you sure that's is correct ? \n\
+$confrim " 20 60);then
+	break
+else rm -r core/$name
+fi
+done
+#configuring zone
+echo "zone \"$domain\" {
+	type master;
+	file \"/etc/bind/zone/$domain/db.$name\";
+};" >> core/$name.conf
+if (whiptail --title "[ REVERSE ]" --yesno "Would you want to create reverse (PTR) conf ?" 10 60);then
+	echo "zone \"$inverseip.in-addr.arpa\" {
+	type master;
+	file \"/etc/bind/zone/$domain/db.192\";
+};" >> core/$name.conf
+	whiptail --title "[ Warning ]" --msgbox "Reverse conf created , but if there is same network ip address on your domain and another network ip address domain , it may cause error on your bind " 10 60
+else whiptail --title "[ Warning ]" --msgbox "Reverse conf not created , it may cause can't nslokup IP address , but still can nslookup domain" 10 60
+fi
+rm -r core/$name
+#color
+green="\033[1;32m" # ijo
+CLEAR="\033[0m" # default color
+yellow="\033[1;33m" #yellow
+echo -e "Proccessing ~ .......... [${yellow}Start${CLEAR}]"
+touch core/$name.conf 
+touch core/db.$name 
+touch core/db.192
+mkdir /etc/bind/zone/$domain
+echo "include \"/etc/bind/zone/$domain/$name.conf\";" >> /etc/bind/named.conf.local
+
+#adding recovery
+echo "$name" > db/$domain
+
+#configuring db.$name
+echo ";
+; BIND data file for local loopback interface
+;
+\$TTL	604800
+@	IN	SOA	$domain. root.$domain. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	$domain.
+@	IN	A	$ipaddress
+" >> core/db.$name
+
+echo ";
+; BIND reverse data file for local loopback interface
+;
+\$TTL	604800
+@	IN	SOA	$domain. root.$domain. (
+			      1		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	$domain.
+$lastip	IN	PTR	$domain. " >> core/db.192
+
+mv core/db.* /etc/bind/zone/$domain/
+mv core/$name.conf /etc/bind/zone/$domain/
+chmod -R 755 /etc/bind/zone/*
+/etc/init.d/bind9 restart
+echo -e "Proccessing ~ .......... [${green}Done${CLEAR}]"
+sleep 2

@@ -1,0 +1,19 @@
+#!/bin/bash
+lock=`cat core/lock`
+while true
+do
+menu=$(whiptail --title "[ Menu ]" --cancel-button "Back" --menu "Choose menu what you want : " 15 60 5 \
+"add_Domain" "Add new Domain (\" A\" ) " \
+"del_Domain" "Delete Domain ( \"A\" ) " \
+"add_sub" "Add New Sub Domain ( \"A\" ) " \
+"del_sub" "Delete Sub Domain ( \"A\" ) " \
+"Coming soon" ":v"  3>&1 1>&2 2>&3)
+
+quitmenu=$?
+
+if [[ $quitmenu = 0 ]]; then
+	$lock/asset/$menu
+else break
+	exit
+fi
+done

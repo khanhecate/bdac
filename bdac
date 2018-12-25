@@ -1,0 +1,37 @@
+#!/bin/bash
+#sambutan  :v
+whiptail --title "[ Welcome ]" --msgbox "Welcome to BDAC (Bind9 DNS AutoConfig) \n\n\n\n--this tools for Debian and Ubuntu server \n\n--by Hecate" 13 60
+if [[ EUID -ne 0 ]]; then
+	whiptail --title "[ warning ! ] " --msgbox "please run as root" 10 60
+	exit
+else clear
+fi
+#pengecek kan
+if ! [ -x "$(command -v lightdm-webkit-greeter )" ];then
+		whiptail --title "[ warning ] " --msgbox --ok-button "Install" "Bind9 not installed , \"OK\" to install it " 10 60
+		apt -y install bind9
+	else clear
+fi
+#creating working dir for A
+mkdir /etc/bind/zone
+pwd > core/lock
+lock=`cat core/lock`
+#menu utama
+while true
+do
+clear
+menu=$(whiptail --title "[ Menu ]" --cancel-button "exit" --menu "Choose DNS Record what you want : " 15 60 5 \
+"A" "IPV4 to Domain or inverse" \
+"AAAA" "IPV6 to Domain or inverse" \
+"CNAME" "Subdomain to Domain" \
+"MX" "For Mail Server" \
+"Coming soon" ":v"  3>&1 1>&2 2>&3)
+
+quitmenu=$?
+
+if [[ $quitmenu = 0 ]]; then
+	$lock/asset/$menu
+else break
+fi
+done
+exit

@@ -1,0 +1,2 @@
+#!/bin/bash
+whiptail --title "[ AAAA]" --msgbox "this is AAAA" 10 60

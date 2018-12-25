@@ -1,0 +1,2 @@
+#!/bin/bash
+whiptail --title "[ CNAME ]" --msgbox "this is CNAME" 10 60

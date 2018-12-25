@@ -1,0 +1,2 @@
+#!/bin/bash
+whiptail --title "[ MX ]" --msgbox "this is MX" 10 60
