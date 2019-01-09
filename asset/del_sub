@@ -5,7 +5,7 @@ delete() {
 	echo "grep -v '$data' /etc/bind/zone/$domain/sub-data/$namesub > db/tmp" >> db/dieshell.sh
 	chmod 777 db/dieshell.sh
 	db/dieshell.sh
-	cat db/tmp > /etc/bind/zone/$domain/db.$domain
+	cat db/tmp > /etc/bind/zone/$domain/db.$name
 }
 INPUT() {
 	ls /etc/bind/zone/$domain/sub-data > core/list
@@ -34,6 +34,12 @@ LINK() {
 	domainquit=$?
 	if [[ $domainquit = 0 ]]; then
 		echo "Domain     = $domain" > core/data
+	else exit
+	fi
+	name=$(whiptail --title "[ Sub Domain]" --no-button "exit" --inputbox "Input domain name , NOT DOMAIN , BUT DOMAIN NAME !" 10 60 3>&1 1>&2 2>&3 ) 
+	namequit=$?
+	if [[ $namequit = 0 ]]; then
+		echo "name = $name " >> core/data
 	else exit
 	fi
 }
