@@ -1,2 +1,33 @@
 #!/bin/bash
-whiptail --title "[ add_sub ]" --msgbox "It's work!" 10 60
+ls /etc/bind/zone > core/list
+list=`cat core/list`
+while true
+do
+domain=$(whiptail --title "[ Add_Sub_Domain ]" --no-button "Exit" --inputbox "List your Domain : \n\
+$list " 20 60 3>&1 1>&2 2>&3 )
+domainquit=$?
+if [[ $domainquit = 0 ]]; then
+	echo "Domain     = $domain" > core/data
+else exit
+fi
+sub=$(whiptail --title "[ Sub Domain]" --no-button "exit" --inputbox "inputbox your sub domain without $domain on the back of it" 10 60 3>&1 1>&2 2>&3 ) 
+subquit=$?
+if [[ $subquit = 0 ]]; then
+	echo "Sub Domain = $sub.$domain " >> core/data
+else exit
+fi
+address=$(whiptail --title "[ IP ]" --no-button "exit" --inputbox "Input ip address for your sub domain" 10 60 3>&1 1>&2 2>&3 )
+addressquit=$?
+if [[ $addressquit = 0 ]]; then
+	echo "IP         = $address" >> core/data
+else exit
+fi
+selesai=`cat core/data`
+if (whiptail --title " [ Confirm ]" --yesno "Are you sure that's is correct ? \n\
+$selesai " 20 60);then
+	break
+else clear
+fi
+done
+name=`cat db/$domain`
+echo "$sub IN A $address" >> /etc/bind/zone/$domain/db.$name
