@@ -8,3 +8,6 @@ LIST FEATURE YANG SUDAH FIX
 2.DELETE DOMAIN
 
 SELAIN YANG DI ATAS MASIH PADA ERROR :')
+
+link tutorial : 
+https://khanafi-w9.blogspot.com/2019/01/bdac-bind9-dns-auto-config-manual-page.html
