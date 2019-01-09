@@ -1,2 +1,42 @@
 #!/bin/bash
-whiptail --title "[ add_sub ]" --msgbox "It's work!" 10 60
+delete() {
+	data=`cat /etc/bind/$domain/sub-data/$namesub`
+	echo "#!/bin/bash" > db/dieshell.sh
+	echo "grep -v '$data' /etc/bind/zone/$domain/sub-data/$namesub > db/tmp" >> db/dieshell.sh
+	chmod 777 db/dieshell.sh
+	db/dieshell.sh
+	cat db/tmp > /etc/bind/zone/$domain/db.$domain
+}
+INPUT() {
+	ls /etc/bind/zone/$domain/sub-data > core/list
+	list=`cat core/list`
+	while true
+	do
+	namesub=$(whiptail --title "[ Sub Domain]" --no-button "exit" --inputbox "List of your sub \n$list \ninput your sub domain" 10 60 3>&1 1>&2 2>&3 ) 
+	subquit=$?
+	if [[ $subquit = 0 ]]; then
+		echo "Sub Domain = $namesub " >> core/data
+	else exit
+	fi
+	selesai=`cat core/data`
+	if (whiptail --title " [ Confirm ]" --yesno "Are you sure that's is correct ? \n\
+	$selesai " 20 60);then
+		break
+	else clear
+	fi
+	done
+}
+LINK() {
+	ls /etc/bind/zone > core/list
+	list=`cat core/list`
+	domain=$(whiptail --title "[ Del_Sub_Domain ]" --no-button "Exit" --inputbox "List your Domain : \n\
+	$list " 20 60 3>&1 1>&2 2>&3 )
+	domainquit=$?
+	if [[ $domainquit = 0 ]]; then
+		echo "Domain     = $domain" > core/data
+	else exit
+	fi
+}
+LINK
+INPUT
+delete
